@@ -1,18 +1,22 @@
 import pandas
 import numpy
+import sys
+
+
+# Constants
+MAX_EIGEN_ERROR = 0.0001 #sensitivity of eigenvector measurements. Lower value -> higher sensitivity
+MAX_EIGEN_ITER = 1000 #number of times the vector is multiplied by the covar matrix before it is given up on and assumed to be impossible
+MIN_COVARIANCE_VALS = 1e-10 #if there are no covariances greater than this value, then all relevant eigenvalues have been found
+
 
 #data should be a DataFrame formatted with each column representing a variable, and each row a separate datapoint
 #data should be normalized
 def createCoVarMtrx(data):
-    varNum = data.shape[1]
-    testNum = data.shape[0]
+    testNum, varNum = data.shape
     
-    means = data.mean(0)
-    means = pandas.DataFrame(means)
+    means = pandas.DataFrame(data.mean(0))
     
-    temp = []
-    for a in range(testNum):
-        temp.append([1])
+    temp = [1] * testNum
 
     variance = data - numpy.dot(temp, means.transpose())
     
@@ -20,18 +24,12 @@ def createCoVarMtrx(data):
 
     return cv
 
-MAX_EIGEN_ERROR = 0.0001 #sensitivity of eigenvector measurements. Lower value -> higher sensitivity
-MAX_EIGEN_ITER = 1000 #number of times the vector is multiplied by the covar matrix before it is given up on and assumed to be impossible
 
 #takes covar matrix, returns column eigenvector, both dataframes
 def findMainEigen(cv):
     #create arbitrary beginning vector
-    vec = []
-    for a in range(cv.shape[0]):
-        vec.append(1)
-    vec = pandas.DataFrame(vec)
-    if vec.sum(0)[0] != 0:
-        vec /= numpy.sqrt(numpy.square(vec).sum(0))[0] #normalize
+    vec = pandas.DataFrame([1] * cv.shape[0])
+    vec /= numpy.sqrt(numpy.square(vec).sum(0))[0] #normalize
 
     error = MAX_EIGEN_ERROR + 1 #making sure that the while loop runs at least once
     count = 0
@@ -43,8 +41,9 @@ def findMainEigen(cv):
         error = numpy.sqrt(numpy.square(vec - oldVec).sum(0))[0]
         count += 1
 
-    #if count >= MAX_EIGEN_ITER:
-        #vec *= 0
+    if count >= MAX_EIGEN_ITER:
+        print("Critical Error: Eigenvector didn't stabilize.")
+        sys.exit(1)
 
     return vec
 
@@ -52,7 +51,7 @@ def findMainEigen(cv):
 #takes covar matrix and column vector, and returns new covar matrix, all dataframes
 def removeEigenComponents(cv, vec):
     cvCopy = cv
-
+    
     for col in range(cv.shape[0]):
         mask = [[]]
         for i in range(cv.shape[0]):
@@ -69,27 +68,20 @@ def removeEigenComponents(cv, vec):
     return cvCopy
 
 
-MIN_COVARIANCE_VALS = 1e-10 #if there are no covariances greater than this value, then all relevant eigenvalues have been found
-
 def findNewBasis(data):
     covar = createCoVarMtrx(data)
 
     basis = findMainEigen(covar)
     
     covar = removeEigenComponents(covar, basis)
-    print("vector found")
-
+   
     while (basis.shape[1] < basis.shape[0]) & (covar.max().max() >= MIN_COVARIANCE_VALS):
         vec = findMainEigen(covar)
         covar = removeEigenComponents(covar, vec)
         basis[basis.shape[1]] = vec
-        print("vector found")
-
+   
     while basis.shape[1] < basis.shape[0]:
-        vec = []
-        for a in range(basis.shape[0]):
-            vec.append(0)
-        basis[basis.shape[1]] = vec
+        basis[basis.shape[1]] = [0] * basis.shape[0]
 
     return basis
 
@@ -104,6 +96,5 @@ def projectOntoNewBasis(data, basis):
         newData = newData.append(coords, True)
 
     return newData
-
 
     
