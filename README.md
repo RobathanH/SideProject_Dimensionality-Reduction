@@ -7,4 +7,7 @@ This new basis will minimize correlation between axes, possibly even with a lowe
 The Basis class must be initialized separately from its creation, using one of two initializer functions: setBasisFromCSV(csv_fileName) or setBasisFromDataframe(data). These functions will override any previously saved basis.
 There are two ways to project data onto this new basis: projectCSV(csv_fileName, output_csv_fileName) and projectData(data). projectCSV() reads a CSV file and writes to another CSV file. projectData() reads from a pandas dataframe object and returns another dataframe.
 
-TODO: Command-line support, performance optimizations
+The Basis class includes a method saveBasis(fileName) which will, as the name implies, save the basis to a given file in raw csv format, with no column or row labels.
+
+Command-line Interface: python3 PCA.py csv_file
+In this format, this program will find the optimized basis for the given csv_file and save the new basis in the file basis.csv and save the given data in terms of the new basis in the file newdata.csv.

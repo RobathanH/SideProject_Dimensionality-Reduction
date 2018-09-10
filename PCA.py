@@ -18,7 +18,7 @@ class Basis:
         
     # creates and stores a new basis from a csv file
     def setBasisFromCSV(self, csv_fileName):
-        data = pandas.read_csv(csv_fileName)
+        data = pandas.read_csv(csv_fileName, header=None)
         self.setBasisFromDataframe(data)
     
     # creates and stores a new basis from a panda dataframe
@@ -48,7 +48,7 @@ class Basis:
     def projectCSV(self, csv_fileName, output_csv_fileName):
         data = pandas.read_csv(csv_fileName)
         newData = self.projectData(data)
-        return newData.to_csv(output_csv_fileName)
+        return newData.to_csv(output_csv_fileName, header=None, index=False)
         
         
     # projects a dataframe into the basis and returns a dataframe in the new basis
@@ -69,7 +69,21 @@ class Basis:
         return newData        
         
         
-        
+    # PRINTING THE BASIS
+    def saveBasis(self, fileName):
+        try:
+            with open(fileName, 'w') as f:
+                for i in range(len(self.basis)):
+                    for j in range(len(self.basis[i])):
+                        f.write(str(self.basis[i][j]))
+                        if j == len(self.basis[i]) - 1:
+                            f.write("\n")
+                        else:
+                            f.write(",")
+                
+        except IOError:
+            print("Error! Couldn't open file: " + fileName)
+            sys.exit(1)
         
         
         
@@ -82,7 +96,7 @@ class Basis:
         
         means = pandas.DataFrame(data.mean(0))
         
-        temp = [1] * testNum
+        temp = pandas.DataFrame([1] * testNum)
         
         variance = data - numpy.dot(temp, means.transpose())
         
@@ -132,3 +146,22 @@ class Basis:
         cvCopy = cvCopy - pandas.DataFrame(numpy.dot(parallelComponent, mask))
 
         return cvCopy
+
+
+
+
+
+
+
+
+# command line support - python3 PCA.py csv_file
+# creates basis from given csv file, saves new basis and csv data in terms of new basis in other files: basis.csv and newdata.csv
+if __name__ == "__main__":
+    if len(sys.argv) != 2:
+        print("Incorrect Format: python3 PCA.py csv_file")
+        sys.exit(1)
+    
+    basis = Basis()
+    basis.setBasisFromCSV(sys.argv[1])
+    basis.saveBasis("basis.csv")
+    basis.projectCSV(sys.argv[1], "newdata.csv")
