@@ -16,6 +16,10 @@ class Basis:
         
     # INITIALIZING FUNCTIONS
         
+    # loads basis directly from saved csv file
+    def loadBasis(self, basis_fileName):
+        self.basis = pandas.read_csv(basis_fileName, header=None)
+    
     # creates and stores a new basis from a csv file
     def setBasisFromCSV(self, csv_fileName):
         data = pandas.read_csv(csv_fileName, header=None)
@@ -69,7 +73,7 @@ class Basis:
         return newData        
         
         
-    # PRINTING THE BASIS
+    # saves the basis in simple csv form
     def saveBasis(self, fileName):
         try:
             with open(fileName, 'w') as f:
@@ -129,9 +133,7 @@ class Basis:
 
 
     #takes covar matrix and column vector, and returns new covar matrix, all dataframes
-    def removeEigenComponents(self, cv, vec):
-        cvCopy = cv
-	    
+    def removeEigenComponents(self, cv, vec):	    
         for col in range(cv.shape[0]):
             mask = [[]]
             for i in range(cv.shape[0]):
@@ -140,13 +142,15 @@ class Basis:
                 else:
                     mask[0].append(0)
             mask = pandas.DataFrame(mask)
-
-        parallelComponent = vec * numpy.dot(vec.transpose(), cv[col])[0]
-
-        cvCopy = cvCopy - pandas.DataFrame(numpy.dot(parallelComponent, mask))
-
-        return cvCopy
-
+            
+            
+            parallelComponent = vec * numpy.dot(vec.transpose(), cv[col])[0] 
+            
+            print(parallelComponent)            
+            
+            cv = cv - pandas.DataFrame(numpy.dot(parallelComponent, mask))
+            
+        return cv
 
 
 
