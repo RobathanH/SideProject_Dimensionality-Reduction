@@ -16,11 +16,11 @@ class Basis:
         
     # INITIALIZING FUNCTIONS
         
-    # loads basis directly from saved csv file
+    # loads basis directly from saved csv file which just includes a basis (from self.saveBasis())
     def loadBasis(self, basis_fileName):
         self.basis = pandas.read_csv(basis_fileName, header=None)
     
-    # creates and stores a new basis from a csv file
+    # creates and stores a new basis from a csv data file
     def setBasisFromCSV(self, csv_fileName):
         data = pandas.read_csv(csv_fileName, header=None)
         self.setBasisFromDataframe(data)
@@ -88,6 +88,18 @@ class Basis:
         except IOError:
             print("Error! Couldn't open file: " + fileName)
             sys.exit(1)
+            
+            
+    # GENERAL FUNCTIONS
+    def printBasis(self):
+        for i in range(len(self.basis)):
+            print("Basis " + str(i) + ": <", end="")
+            for j in range(len(self.basis[i])):
+                print(str(self.basis[i][j]), end="")
+                if j != len(self.basis[i]) - 1:
+                    print(", ", end="")
+            print(">")
+        print("")
         
         
         
@@ -144,9 +156,7 @@ class Basis:
             mask = pandas.DataFrame(mask)
             
             
-            parallelComponent = vec * numpy.dot(vec.transpose(), cv[col])[0] 
-            
-            print(parallelComponent)            
+            parallelComponent = vec * numpy.dot(vec.transpose(), cv[col])[0]          
             
             cv = cv - pandas.DataFrame(numpy.dot(parallelComponent, mask))
             
